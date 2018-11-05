@@ -32,7 +32,18 @@ public class MySQLConnect {
 
     private final Activity main;
     private List<String> list;
-    private String URL ="http://10.199.9.55/" , GET_URL = "get_post.php" , SENT_URL = "sent_post.php";
+    private String URL ="http://10.199.9.41/" ,
+            GET_URL = "get_post.php" ,
+            SENT_URL = "sent_post.php",
+            DEL_URL = "del_post.php" ,
+            UPD_URL = "upd_post.php";
+
+    public String std_id = "";
+    public String std_name = "";
+    public String std_tel = "";
+    public String std_email = "";
+    public  String string = "";
+
 
     public MySQLConnect() { main = null;}
 
@@ -48,7 +59,12 @@ public class MySQLConnect {
             @Override
             public void onResponse(String response) {
                 showJSON(response);
-                Toast.makeText(main, list.get(0), Toast.LENGTH_LONG).show();
+                if (list.isEmpty()){
+                    Toast.makeText(main, "ไม่มีข้อมูลในคาราง", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(main, "มีข้อมูลในคาราง", Toast.LENGTH_SHORT).show();
+            }
+
             }
         }, new Response.ErrorListener() {
             @Override
@@ -64,7 +80,10 @@ public class MySQLConnect {
     }
 
     public void showJSON(String response){
-        String comment = "";
+        std_id="";
+        std_name="";
+        std_tel="";
+        std_email="";
 
         try {
             JSONObject jsonObject = new JSONObject(response);
@@ -72,15 +91,20 @@ public class MySQLConnect {
 
             for (int i=0; i<result.length(); i++){
                 JSONObject collectData = result.getJSONObject(i);
-                comment = collectData.getString("comment");
-                list.add(comment);
+                std_id = collectData.getString("std_id");
+                std_name = collectData.getString("std_name");
+                std_tel = collectData.getString("std_tel");
+                std_email = collectData.getString("std_email");
+                string = std_id + "\n" + std_name + "\n" + std_tel + "\n" + std_email;
+                list.add(string);
             }
+
         }catch (JSONException ex) {
             ex.printStackTrace();
         }
     }
 
-    public void sentData(String value){
+    public void sentData(String StdId, String StdName, String StdTel, String StdEmail){
         StrictMode.enableDefaults();
         if (Build.VERSION.SDK_INT > 9){
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -89,9 +113,40 @@ public class MySQLConnect {
         try {
             ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
             nameValuePairs.add(new BasicNameValuePair("isAdd", "true"));
-            nameValuePairs.add(new BasicNameValuePair("comment",value));
+            nameValuePairs.add(new BasicNameValuePair("stdid",StdId));
+            nameValuePairs.add(new BasicNameValuePair("stdname",StdName));
+            nameValuePairs.add(new BasicNameValuePair("stdtel",StdTel));
+            nameValuePairs.add(new BasicNameValuePair("stdemail",StdEmail));
             HttpClient httpClient = new DefaultHttpClient();
             HttpPost httpPost = new HttpPost(URL + SENT_URL);
+            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs, "UTF-8"));
+            httpClient.execute(httpPost);
+
+            Toast.makeText(main,"Completed.", Toast.LENGTH_LONG).show();
+        }catch (UnsupportedEncodingException e){
+            e.printStackTrace();
+        }catch (ClientProtocolException e){
+            e.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void upd_data(final String dataStdId ,final String dataStdName, final  String dataStdTel, final String dataStdEmail){
+        StrictMode.enableDefaults();
+        if (Build.VERSION.SDK_INT > 9){
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
+        try {
+            ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+            nameValuePairs.add(new BasicNameValuePair("isAdd", "true"));
+            nameValuePairs.add(new BasicNameValuePair("stdid",dataStdId));
+            nameValuePairs.add(new BasicNameValuePair("stdname",dataStdName));
+            nameValuePairs.add(new BasicNameValuePair("stdtel",dataStdTel));
+            nameValuePairs.add(new BasicNameValuePair("stdemail",dataStdEmail));
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpPost httpPost = new HttpPost(URL + UPD_URL);
             httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs, "UTF-8"));
             httpClient.execute(httpPost);
 
